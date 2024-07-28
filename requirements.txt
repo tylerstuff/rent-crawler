@@ -1,6 +1,6 @@
 requests
 httpx
 supabase
-geohash
+python-geohash
 discordwebhook
 tenacity
