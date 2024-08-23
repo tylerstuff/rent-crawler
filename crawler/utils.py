@@ -1,9 +1,13 @@
 import httpx
 import os
 from supabase import create_client, Client
+from typing import List, Dict
 import geohash
 from discordwebhook import Discord
 import logging
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+import pytz
 
 logging.basicConfig(level=logging.INFO)
 
@@ -79,3 +83,27 @@ def alert_new_condo(title: str, description: str, street_name: str, lat: str, lo
         ]
     )
     return
+
+
+def select_condo() -> List[Dict[str, str]]:
+    """Selects a random condo to crawl based on their last update"""
+    response = supabase.table("property_condo").select("id", "latitude", "longitude", "last_update_string").order("last_crawled_at").limit(10).execute()
+    return response.data
+
+
+def upload_rent(rent_data: List[Dict[str, str]]):
+    """Uploads rent data to the database"""
+    response = supabase.table("property_rent").upsert(rent_data).execute()
+    return response
+
+
+def post_crawl_condo_update(condo_id: str):
+    """Update the last crawled time for a condo"""
+    # last_updated_string is always the previous month in YYYY-mm format
+    current_date = datetime.now()
+    previous_month = current_date - relativedelta(months=1)
+    last_update_string = previous_month.strftime('%Y-%m')
+    current_time_tz = datetime.now(pytz.utc)
+    timestampz_string = current_time_tz.isoformat()
+    response = supabase.table("property_condo").update({"last_crawled_at": timestampz_string, "last_update_string": last_update_string}).eq("id", condo_id).execute()
+    return response

@@ -34,7 +34,7 @@ def main():
                 process_district(district, existing_condos)
                 time.sleep(random.randint(10, 30))
             logging.info("Sleeping for 1 month")
-            time.sleep(2592000)
+            time.sleep(60*60*24)
     except Exception as e:
         system_alert_discord(f"An error occurred: {e}")
         logging.error(f"An error occurred: {e}")
